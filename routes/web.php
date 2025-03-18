@@ -1,20 +1,9 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Controllers\AdminDashboardController;
+use App\Providers\RouteServiceProvider;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,14 +11,23 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Redirect setelah login
+Route::get('/home', function () {
+    return redirect(RouteServiceProvider::home());
+})->middleware('auth');
 
-
-
+// Dashboard User
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
+});
 
+// Dashboard Admin (Hanya untuk admin)
+Route::middleware(['auth', 'isAdmin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+});
+
+// Edit Profil
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });
